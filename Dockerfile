@@ -1,11 +1,17 @@
-FROM eclipse-temurin:21-jdk
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-VOLUME /tmp
+COPY --chown=10001:10001 target/*.jar app.jar
 
-COPY target/*.jar app.jar
+USER 10001:10001
 
 EXPOSE 8092
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT [
+  "java",
+  "-XX:MaxRAMPercentage=75.0",
+  "-XX:+ExitOnOutOfMemoryError",
+  "-jar",
+  "/app/app.jar"
+]

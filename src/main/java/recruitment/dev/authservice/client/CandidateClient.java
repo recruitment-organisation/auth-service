@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import recruitment.dev.authservice.feign.CandidateDto;
 
-@FeignClient(name = "candidate-service")
+@FeignClient(name = "candidate-service", fallbackFactory = CandidateClientFallbackFactory.class)
 public interface CandidateClient {
 
     @PostMapping("/candidate/create")

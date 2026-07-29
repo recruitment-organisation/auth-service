@@ -47,4 +47,13 @@ public class AuthServiceImpl implements AuthService {
         keycloakUserAdminService.deleteUser(userId);
     }
 
+    @Override
+    public void updateUserRole(String userId, UpdateUserRoleRequest request) {
+        keycloakUserAdminService.updateUserRole(
+                userId,
+                request.getOldRole(),
+                request.getNewRole()
+        );
+    }
+
 }

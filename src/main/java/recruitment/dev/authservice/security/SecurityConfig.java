@@ -31,8 +31,8 @@ public class SecurityConfig {
                 .sessionManagement(sm->sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS ))
                 .csrf(csrf-> csrf.disable())
                 .authorizeHttpRequests(ar -> ar
-                        .requestMatchers("/auth/signup", "/auth/forgot-password", "/auth/login",
-                                "/auth/refresh-token", "/auth/logout", "/auth/exist", "/auth/reset-password").permitAll()
+                        .requestMatchers("/auth/signup", "/auth/login",
+                                "/auth/refresh-token", "/auth/logout").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/actuator/info").permitAll()
                         .anyRequest().authenticated()

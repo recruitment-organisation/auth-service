@@ -32,7 +32,13 @@ public class UserRegistrationService {
                 request.getFirstName(),
                 request.getLastName(),
                 request.getPassword(),
-                keycloakUserId -> candidateClient.createCandidate(CandidateDto.builder()
+                keycloakUserId ->{
+
+                    keycloakUserAdminService.assignRole(
+                            keycloakUserId,
+                            "ROLE_CANDIDATE"
+                    );
+                        candidateClient.createCandidate(CandidateDto.builder()
                         .keycloakId(keycloakUserId)
                         .firstName(request.getFirstName())
                         .lastName(request.getLastName())
@@ -42,7 +48,8 @@ public class UserRegistrationService {
                         .available(request.getAvailable())
                         .linkedinUrl(request.getLinkedinUrl())
                         .githubUrl(request.getGithubUrl())
-                        .build()),
+                        .build());
+                },
                 "User created but candidate profile creation failed. Rolled back."
         );
         return "Utilisateur créé avec succès ! id=" + created.getKeycloakUserId();
@@ -54,17 +61,23 @@ public class UserRegistrationService {
                 request.getFirstName(),
                 request.getLastName(),
                 request.getPassword(),
-                keycloakUserId -> employeeClient.createEmployee(EmployeeDto.builder()
-                        .keycloakId(keycloakUserId)
-                        .firstName(request.getFirstName())
-                        .lastName(request.getLastName())
-                        .email(request.getEmail())
-                        .phone(request.getPhone())
-                        .hireDate(request.getHireDate())
-                        .position(request.getPosition())
-                        .roleId(request.getRoleId())
-                        .departmentId(request.getDepartmentId())
-                        .build()),
+                keycloakUserId -> {
+                    keycloakUserAdminService.assignRole(
+                            keycloakUserId,
+                            "ROLE_EMPLOYEE"
+                    );
+                    employeeClient.createEmployee(EmployeeDto.builder()
+                            .keycloakId(keycloakUserId)
+                            .firstName(request.getFirstName())
+                            .lastName(request.getLastName())
+                            .email(request.getEmail())
+                            .phone(request.getPhone())
+                            .hireDate(request.getHireDate())
+                            .position(request.getPosition())
+                            .roleId(request.getRoleId())
+                            .departmentId(request.getDepartmentId())
+                            .build());
+                },
                 "Employee profile creation failed. Keycloak user rolled back."
         );
     }

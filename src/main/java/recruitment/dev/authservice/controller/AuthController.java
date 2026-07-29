@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,6 +39,16 @@ public class AuthController {
     @PreAuthorize("hasRole('HR')")
     public ResponseEntity<Void> deleteUser(@PathVariable String userId) {
         authService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/users/{userId}/role")
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<Void> updateUserRole(
+            @PathVariable String userId,
+            @Valid @RequestBody UpdateUserRoleRequest request
+    ) {
+        authService.updateUserRole(userId, request);
         return ResponseEntity.noContent().build();
     }
 

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -118,7 +119,69 @@ public class KeycloakUserAdminService {
             throw new AuthException(HttpStatus.BAD_GATEWAY, "Error while deleting user.", ex);
         }
     }
+    public void assignRole(String userId, String roleName) {
 
+        RoleRepresentation role =
+                keycloak.realm(properties.getRealm())
+                        .roles()
+                        .get(roleName)
+                        .toRepresentation();
+
+
+        keycloak.realm(properties.getRealm())
+                .users()
+                .get(userId)
+                .roles()
+                .realmLevel()
+                .add(List.of(role));
+    }
+
+    public void updateUserRole(
+            String userId,
+            String oldRoleName,
+            String newRoleName
+    ) {
+        if (userId == null || userId.isBlank()) {
+            throw new AuthException(HttpStatus.BAD_REQUEST, "User identifier is required");
+        }
+
+        if (oldRoleName == null || oldRoleName.isBlank()) {
+            throw new AuthException(HttpStatus.BAD_REQUEST, "Old role is required");
+        }
+
+        if (newRoleName == null || newRoleName.isBlank()) {
+            throw new AuthException(HttpStatus.BAD_REQUEST, "New role is required");
+        }
+
+        try {
+            RoleRepresentation oldRole = keycloak.realm(properties.getRealm())
+                    .roles()
+                    .get(oldRoleName)
+                    .toRepresentation();
+
+            RoleRepresentation newRole = keycloak.realm(properties.getRealm())
+                    .roles()
+                    .get(newRoleName)
+                    .toRepresentation();
+
+            var realmLevelRoles = keycloak.realm(properties.getRealm())
+                    .users()
+                    .get(userId)
+                    .roles()
+                    .realmLevel();
+
+            realmLevelRoles.remove(List.of(oldRole));
+            realmLevelRoles.add(List.of(newRole));
+        } catch (AuthException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw new AuthException(
+                    HttpStatus.BAD_GATEWAY,
+                    "Unable to update user role.",
+                    exception
+            );
+        }
+    }
 
     public void rollbackKeycloakUser(String keycloakUserId) {
 
