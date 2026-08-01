@@ -9,8 +9,16 @@ public class EmployeeClientFallbackFactory implements FallbackFactory<EmployeeCl
 
     @Override
     public EmployeeClient create(Throwable cause) {
-        return dto -> {
-            throw AuthFeignFallbacks.unavailable("employee-service", cause);
+        return new EmployeeClient() {
+            @Override public EmployeeDto createEmployee(String authorization, EmployeeDto dto) {
+                throw AuthFeignFallbacks.unavailable("employee-service", cause);
+            }
+            @Override public EmployeeDto getCurrentEmployee(String authorization) {
+                throw AuthFeignFallbacks.unavailable("employee-service", cause);
+            }
+            @Override public recruitment.dev.authservice.feign.EmployeeRoleDto getEmployeeRole(String authorization, Long id) {
+                throw AuthFeignFallbacks.unavailable("employee-service", cause);
+            }
         };
     }
 }

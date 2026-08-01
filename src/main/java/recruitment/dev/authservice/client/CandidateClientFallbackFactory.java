@@ -9,8 +9,13 @@ public class CandidateClientFallbackFactory implements FallbackFactory<Candidate
 
     @Override
     public CandidateClient create(Throwable cause) {
-        return dto -> {
-            throw AuthFeignFallbacks.unavailable("candidate-service", cause);
+        return new CandidateClient() {
+            @Override public CandidateDto createCandidate(CandidateDto dto) {
+                throw AuthFeignFallbacks.unavailable("candidate-service", cause);
+            }
+            @Override public CandidateDto getCurrentCandidate(String authorization) {
+                throw AuthFeignFallbacks.unavailable("candidate-service", cause);
+            }
         };
     }
 }

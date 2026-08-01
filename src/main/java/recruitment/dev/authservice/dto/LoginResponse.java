@@ -20,6 +20,8 @@ public class LoginResponse {
 
     private String username;
 
+    private String id;
+
     private String email;
 
     private String firstName;
@@ -28,5 +30,6 @@ public class LoginResponse {
 
     private List<String> roles;
 
-    private Long employeeId;
+    /** ID of the candidate or employee domain profile associated with this account. */
+    private Long userId;
 }

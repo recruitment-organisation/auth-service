@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,8 +32,10 @@ public class AuthController {
     }
     @PreAuthorize("hasRole('HR')")
     @PostMapping("/create-employee")
-    public ResponseEntity<CreateUserResponse> createEmployee(@Valid @RequestBody CreateEmployeeRequest request) {
-        return ResponseEntity.ok(authService.createEmployee(request));
+    public ResponseEntity<CreateUserResponse> createEmployee(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody CreateEmployeeRequest request) {
+        return ResponseEntity.ok(authService.createEmployee(request, "Bearer " + jwt.getTokenValue()));
     }
 
 
@@ -49,6 +53,14 @@ public class AuthController {
             @Valid @RequestBody UpdateUserRoleRequest request
     ) {
         authService.updateUserRole(userId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<Void> updateMyAccount(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody UpdateMyAccountRequest request) {
+        authService.updateMyAccount(jwt.getSubject(), request);
         return ResponseEntity.noContent().build();
     }
 

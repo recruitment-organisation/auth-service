@@ -33,8 +33,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public CreateUserResponse createEmployee(CreateEmployeeRequest request) {
-        return userRegistrationService.createEmployee(request);
+    public CreateUserResponse createEmployee(CreateEmployeeRequest request, String authorization) {
+        return userRegistrationService.createEmployee(request, authorization);
     }
 
     @Override
@@ -54,6 +54,11 @@ public class AuthServiceImpl implements AuthService {
                 request.getOldRole(),
                 request.getNewRole()
         );
+    }
+
+    @Override
+    public void updateMyAccount(String userId, UpdateMyAccountRequest request) {
+        keycloakUserAdminService.updateAccount(userId, request.getEmail(), request.getPassword());
     }
 
 }

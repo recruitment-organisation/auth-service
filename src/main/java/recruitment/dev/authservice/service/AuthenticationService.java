@@ -14,6 +14,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import recruitment.dev.authservice.confi.KeycloakAdminProperties;
+import recruitment.dev.authservice.client.CandidateClient;
+import recruitment.dev.authservice.client.EmployeeClient;
 import recruitment.dev.authservice.dto.LoginRequest;
 import recruitment.dev.authservice.dto.LoginResponse;
 import recruitment.dev.authservice.dto.LogoutRequest;
@@ -22,6 +24,7 @@ import recruitment.dev.authservice.exception.AuthException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,8 @@ public class AuthenticationService {
 
     private final WebClient.Builder webClientBuilder;
     private final KeycloakAdminProperties properties;
+    private final CandidateClient candidateClient;
+    private final EmployeeClient employeeClient;
 
     public LoginResponse login(LoginRequest request) {
         try (Keycloak keycloakUser = KeycloakBuilder.builder()
@@ -73,16 +78,19 @@ public class AuthenticationService {
                     .bodyToMono(Map.class)
                     .block();
 
-            if (tokenResponse == null || tokenResponse.get("access_token") == null) {
+            if (tokenResponse == null || !(tokenResponse.get("access_token") instanceof String accessToken) || accessToken.isBlank()) {
                 throw new AuthException(HttpStatus.UNAUTHORIZED, "Unable to refresh token.");
             }
 
-            String accessToken = (String) tokenResponse.get("access_token");
-            String newRefreshToken = (String) tokenResponse.get("refresh_token");
-            Integer expiresIn = (Integer) tokenResponse.get("expires_in");
+            String newRefreshToken = tokenResponse.get("refresh_token") instanceof String token && !token.isBlank()
+                    ? token : request.getRefreshToken();
+            Long expiresIn = tokenResponse.get("expires_in") instanceof Number value
+                    ? value.longValue() : null;
+            if (expiresIn == null || expiresIn <= 0) {
+                throw new AuthException(HttpStatus.UNAUTHORIZED, "Invalid refresh-token response.");
+            }
 
-            return buildLoginResponse(accessToken, newRefreshToken,
-                    expiresIn != null ? expiresIn.longValue() : null);
+            return buildLoginResponse(accessToken, newRefreshToken, expiresIn);
 
         } catch (AuthException ex) {
             throw ex;
@@ -120,15 +128,33 @@ public class AuthenticationService {
         response.setAccessToken(accessToken);
         response.setRefreshToken(refreshToken);
         response.setExpiresIn(expiresIn);
+        response.setId(claims.getSubject());
         response.setUsername(claims.getStringClaim("preferred_username"));
         response.setEmail(claims.getStringClaim("email"));
+        response.setFirstName(claims.getStringClaim("given_name"));
+        response.setLastName(claims.getStringClaim("family_name"));
 
         Map<String, Object> realmAccess = (Map<String, Object>) claims.getClaim("realm_access");
-        if (realmAccess != null) {
-            response.setRoles((List<String>) realmAccess.get("roles"));
-        }
+        Object roles = realmAccess == null ? null : realmAccess.get("roles");
+        response.setRoles(roles instanceof List<?> roleList
+                ? roleList.stream().filter(String.class::isInstance).map(String.class::cast).toList()
+                : Collections.emptyList());
+        populateEntityIds(response, accessToken);
 
         return response;
+    }
+
+    private void populateEntityIds(LoginResponse response, String accessToken) {
+        String authorization = "Bearer " + accessToken;
+        try {
+            if (response.getRoles().contains("CANDIDATE")) {
+                response.setUserId(candidateClient.getCurrentCandidate(authorization).getId());
+            } else if (response.getRoles().stream().anyMatch(role -> role.equals("EMPLOYEE") || role.equals("HR") || role.equals("MANAGER"))) {
+                response.setUserId(employeeClient.getCurrentEmployee(authorization).getId());
+            }
+        } catch (RuntimeException ignored) {
+            // A Keycloak account can exist before its optional domain profile is created.
+        }
     }
 
     private MultiValueMap<String, String> baseClientFormData() {

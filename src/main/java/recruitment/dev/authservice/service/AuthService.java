@@ -14,7 +14,8 @@ public interface AuthService {
 
     void deleteUser(String userId) ;
     LoginResponse refreshToken(RefreshTokenRequest request);
-    CreateUserResponse createEmployee(CreateEmployeeRequest request);
+    CreateUserResponse createEmployee(CreateEmployeeRequest request, String authorization);
     void updateUserRole(String userId, UpdateUserRoleRequest request);
+    void updateMyAccount(String userId, UpdateMyAccountRequest request);
 
 }

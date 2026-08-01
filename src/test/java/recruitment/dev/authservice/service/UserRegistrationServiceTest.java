@@ -35,7 +35,7 @@ class UserRegistrationServiceTest {
 
         assertThat(service.createUser(request)).isEqualTo("Utilisateur créé avec succès ! id=keycloak-1");
 
-        verify(keycloakUserAdminService).assignRole("keycloak-1", "ROLE_CANDIDATE");
+        verify(keycloakUserAdminService).assignRole("keycloak-1", "CANDIDATE");
         ArgumentCaptor<recruitment.dev.authservice.feign.CandidateDto> candidate = ArgumentCaptor.forClass(recruitment.dev.authservice.feign.CandidateDto.class);
         verify(candidateClient).createCandidate(candidate.capture());
         assertThat(candidate.getValue().getKeycloakId()).isEqualTo("keycloak-1");

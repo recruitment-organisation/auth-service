@@ -36,7 +36,7 @@ public class UserRegistrationService {
 
                     keycloakUserAdminService.assignRole(
                             keycloakUserId,
-                            "ROLE_CANDIDATE"
+                            "CANDIDATE"
                     );
                         candidateClient.createCandidate(CandidateDto.builder()
                         .keycloakId(keycloakUserId)
@@ -55,18 +55,19 @@ public class UserRegistrationService {
         return "Utilisateur créé avec succès ! id=" + created.getKeycloakUserId();
     }
 
-    public CreateUserResponse createEmployee(CreateEmployeeRequest request) {
+    public CreateUserResponse createEmployee(CreateEmployeeRequest request, String authorization) {
         return createAccount(
                 request.getEmail(),
                 request.getFirstName(),
                 request.getLastName(),
                 request.getPassword(),
                 keycloakUserId -> {
+                    String keycloakRole = resolveKeycloakRole(authorization, request.getRoleId());
                     keycloakUserAdminService.assignRole(
                             keycloakUserId,
-                            "ROLE_EMPLOYEE"
+                            keycloakRole
                     );
-                    employeeClient.createEmployee(EmployeeDto.builder()
+                    employeeClient.createEmployee(authorization, EmployeeDto.builder()
                             .keycloakId(keycloakUserId)
                             .firstName(request.getFirstName())
                             .lastName(request.getLastName())
@@ -80,6 +81,13 @@ public class UserRegistrationService {
                 },
                 "Employee profile creation failed. Keycloak user rolled back."
         );
+    }
+
+    private String resolveKeycloakRole(String authorization, Long roleId) {
+        String roleName = employeeClient.getEmployeeRole(authorization, roleId).getName();
+        if ("HR".equalsIgnoreCase(roleName)) return "HR";
+        if ("MANAGER".equalsIgnoreCase(roleName)) return "MANAGER";
+        return "EMPLOYEE";
     }
 
     private CreateUserResponse createAccount(

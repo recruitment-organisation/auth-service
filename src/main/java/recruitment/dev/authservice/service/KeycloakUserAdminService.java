@@ -183,6 +183,36 @@ public class KeycloakUserAdminService {
         }
     }
 
+    public void updateAccount(String userId, String email, String password) {
+        if (userId == null || userId.isBlank()) {
+            throw new AuthException(HttpStatus.BAD_REQUEST, "User identifier is required");
+        }
+        if ((email == null || email.isBlank()) && (password == null || password.isBlank())) {
+            throw new AuthException(HttpStatus.BAD_REQUEST, "Email or password is required");
+        }
+
+        try {
+            var userResource = keycloak.realm(properties.getRealm()).users().get(userId);
+            if (email != null && !email.isBlank()) {
+                UserRepresentation user = userResource.toRepresentation();
+                user.setEmail(email.trim());
+                user.setEmailVerified(false);
+                userResource.update(user);
+            }
+            if (password != null && !password.isBlank()) {
+                CredentialRepresentation credential = new CredentialRepresentation();
+                credential.setType(CredentialRepresentation.PASSWORD);
+                credential.setValue(password);
+                credential.setTemporary(false);
+                userResource.resetPassword(credential);
+            }
+        } catch (AuthException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw new AuthException(HttpStatus.BAD_GATEWAY, "Unable to update account.", exception);
+        }
+    }
+
     public void rollbackKeycloakUser(String keycloakUserId) {
 
         try {
