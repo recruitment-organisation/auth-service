@@ -47,7 +47,6 @@ public class AuthController {
     }
 
     @PatchMapping("/users/{userId}/role")
-    @PreAuthorize("hasRole('HR')")
     public ResponseEntity<Void> updateUserRole(
             @PathVariable String userId,
             @Valid @RequestBody UpdateUserRoleRequest request

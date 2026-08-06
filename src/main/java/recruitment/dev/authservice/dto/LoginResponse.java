@@ -30,6 +30,5 @@ public class LoginResponse {
 
     private List<String> roles;
 
-    /** ID of the candidate or employee domain profile associated with this account. */
     private Long userId;
 }

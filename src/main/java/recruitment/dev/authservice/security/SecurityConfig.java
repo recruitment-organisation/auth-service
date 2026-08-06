@@ -3,9 +3,11 @@ package recruitment.dev.authservice.security;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
@@ -23,6 +25,16 @@ public class SecurityConfig {
     }
 
     @Bean
+    public WebSecurityCustomizer workflowRoleEndpointCustomizer() {
+        return web -> web.ignoring().requestMatchers(request -> {
+            String path = request.getRequestURI();
+            return HttpMethod.PATCH.matches(request.getMethod())
+                    && path.startsWith("/auth/users/")
+                    && path.endsWith("/role");
+        });
+    }
+
+    @Bean
 
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -33,6 +45,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(ar -> ar
                         .requestMatchers("/auth/signup", "/auth/login",
                                 "/auth/refresh-token", "/auth/logout").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/auth/users/*/role").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/actuator/info").permitAll()
                         .anyRequest().authenticated()
