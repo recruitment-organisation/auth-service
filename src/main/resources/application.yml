@@ -22,19 +22,19 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: ${KEYCLOAK_SERVER_URL:http://localhost:8080}/realms/${KEYCLOAK_REALM:micro-service}/protocol/openid-connect/certs
-          issuer-uri: ${KEYCLOAK_SERVER_URL:http://localhost:8080}/realms/${KEYCLOAK_REALM:micro-service}
+          jwk-set-uri: ${KEYCLOAK_SERVER_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs
+          issuer-uri: ${KEYCLOAK_ISSUER_URI::http://localhost:8080}/realms/${KEYCLOAK_REALM:micro-service}
 
 server:
   port: 8092
 
 keycloak:
-  server-url: ${KEYCLOAK_SERVER_URL:http://localhost:8080}
-  realm: ${KEYCLOAK_REALM:micro-service}
-  client-id: ${KEYCLOAK_CLIENT_ID:spring-service}
-  admin-user: ${KEYCLOAK_ADMIN_USER:admin}
-  admin-password: ${KEYCLOAK_ADMIN_PASSWORD:admin}
-  client-secret: ${KEYCLOAK_CLIENT_SECRET:S5GdPFS9Z9E0tFvDHv29YAiGNKGppVr4}
+  server-url: ${KEYCLOAK_SERVER_URL}
+  realm: ${KEYCLOAK_REALM}
+  client-id: ${KEYCLOAK_CLIENT_ID}
+  admin-user: ${KEYCLOAK_ADMIN_USER}
+  admin-password: ${KEYCLOAK_ADMIN_PASSWORD}
+  client-secret: ${KEYCLOAK_CLIENT_SECRET}
 
 eureka:
   client:
