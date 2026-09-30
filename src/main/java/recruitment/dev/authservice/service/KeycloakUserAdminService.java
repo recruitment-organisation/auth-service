@@ -14,6 +14,7 @@ import recruitment.dev.authservice.confi.KeycloakAdminProperties;
 import recruitment.dev.authservice.exception.AuthException;
 
 import java.util.List;
+import java.util.Map;
 
 
 @Slf4j
@@ -81,6 +82,29 @@ public class KeycloakUserAdminService {
         user.setCredentials(List.of(credential));
 
         return user;
+    }
+
+    public UserRepresentation buildManagedHr(String email, String firstName, String lastName,
+                                             String temporaryPassword, Long companyId, boolean active) {
+        UserRepresentation user = buildUserRepresentation(email, firstName, lastName, temporaryPassword, email);
+        user.setEnabled(active);
+        user.setEmailVerified(false);
+        user.setRequiredActions(List.of("UPDATE_PASSWORD"));
+        user.setAttributes(Map.of("companyId", List.of(String.valueOf(companyId))));
+        CredentialRepresentation credential = user.getCredentials().getFirst();
+        credential.setTemporary(true);
+        return user;
+    }
+
+    public void setEnabled(String userId, boolean enabled) {
+        try {
+            var resource = keycloak.realm(properties.getRealm()).users().get(userId);
+            UserRepresentation user = resource.toRepresentation();
+            user.setEnabled(enabled);
+            resource.update(user);
+        } catch (Exception exception) {
+            throw new AuthException(HttpStatus.BAD_GATEWAY, "Unable to update Keycloak account status.", exception);
+        }
     }
 
     public String createKeycloakUser(UserRepresentation user) {

@@ -31,4 +31,6 @@ public class LoginResponse {
     private List<String> roles;
 
     private Long userId;
+    private Long companyId;
+    private String companyName;
 }

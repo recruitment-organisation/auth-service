@@ -15,12 +15,18 @@ import recruitment.dev.authservice.feign.CreateEmployeeRequest;
 import recruitment.dev.authservice.feign.EmployeeDto;
 
 import java.util.function.Consumer;
+import java.security.SecureRandom;
+import recruitment.dev.authservice.dto.CreateHrRequest;
+import recruitment.dev.authservice.dto.CreateHrResponse;
+import recruitment.dev.authservice.feign.CreateHrProfileRequest;
 
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserRegistrationService {
+
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final KeycloakUserAdminService keycloakUserAdminService;
     private final CandidateClient candidateClient;
@@ -81,6 +87,41 @@ public class UserRegistrationService {
                 },
                 "Employee profile creation failed. Keycloak user rolled back."
         );
+    }
+
+    public CreateHrResponse createHr(Long companyId, CreateHrRequest request, String authorization) {
+        if (keycloakUserAdminService.userExists(request.email())) {
+            throw new AuthException(HttpStatus.CONFLICT, "Email already exists.");
+        }
+        String temporaryPassword = temporaryPassword();
+        UserRepresentation user = keycloakUserAdminService.buildManagedHr(
+                request.email().trim(), request.firstName(), request.lastName(), temporaryPassword,
+                companyId, request.active() == null || request.active());
+        String keycloakId = keycloakUserAdminService.createKeycloakUser(user);
+        try {
+            keycloakUserAdminService.assignRole(keycloakId, "HR");
+            EmployeeDto employee = employeeClient.createHrProfile(authorization, companyId,
+                    new CreateHrProfileRequest(keycloakId, request.firstName(), request.lastName(), request.email(), request.phone(), request.active()));
+            return new CreateHrResponse(keycloakId, employee.getId(), request.email(), temporaryPassword, companyId);
+        } catch (RuntimeException exception) {
+            keycloakUserAdminService.rollbackKeycloakUser(keycloakId);
+            throw new AuthException(HttpStatus.BAD_GATEWAY, "HR profile creation failed. Keycloak user rolled back.", exception);
+        }
+    }
+
+    private String temporaryPassword() {
+        final String alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+        StringBuilder value = new StringBuilder("Ri1!");
+        for (int i = 0; i < 12; i++) value.append(alphabet.charAt(RANDOM.nextInt(alphabet.length())));
+        return value.toString();
+    }
+
+    public EmployeeDto getEmployee(Long employeeId, String authorization) {
+        return employeeClient.getEmployee(authorization, employeeId);
+    }
+
+    public void setHrProfileStatus(Long employeeId, boolean active, String authorization) {
+        employeeClient.setHrStatus(authorization, employeeId, new recruitment.dev.authservice.dto.StatusRequest(active));
     }
 
     private String resolveKeycloakRole(String authorization, Long roleId) {

@@ -150,7 +150,10 @@ public class AuthenticationService {
             if (response.getRoles().contains("CANDIDATE")) {
                 response.setUserId(candidateClient.getCurrentCandidate(authorization).getId());
             } else if (response.getRoles().stream().anyMatch(role -> role.equals("EMPLOYEE") || role.equals("HR") || role.equals("MANAGER"))) {
-                response.setUserId(employeeClient.getCurrentEmployee(authorization).getId());
+                var employee = employeeClient.getCurrentEmployee(authorization);
+                response.setUserId(employee.getId());
+                response.setCompanyId(employee.getCompanyId());
+                response.setCompanyName(employee.getCompanyName());
             }
         } catch (RuntimeException ignored) {
             // A Keycloak account can exist before its optional domain profile is created.

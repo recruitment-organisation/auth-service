@@ -61,4 +61,16 @@ public class AuthServiceImpl implements AuthService {
         keycloakUserAdminService.updateAccount(userId, request.getEmail(), request.getPassword());
     }
 
+    @Override
+    public CreateHrResponse createHr(Long companyId, CreateHrRequest request, String authorization) {
+        return userRegistrationService.createHr(companyId, request, authorization);
+    }
+
+    @Override
+    public void setHrStatus(Long employeeId, StatusRequest request, String authorization) {
+        var employee = userRegistrationService.getEmployee(employeeId, authorization);
+        keycloakUserAdminService.setEnabled(employee.getKeycloakId(), request.active());
+        userRegistrationService.setHrProfileStatus(employeeId, request.active(), authorization);
+    }
+
 }

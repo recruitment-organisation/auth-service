@@ -17,5 +17,7 @@ public interface AuthService {
     CreateUserResponse createEmployee(CreateEmployeeRequest request, String authorization);
     void updateUserRole(String userId, UpdateUserRoleRequest request);
     void updateMyAccount(String userId, UpdateMyAccountRequest request);
+    CreateHrResponse createHr(Long companyId, CreateHrRequest request, String authorization);
+    void setHrStatus(Long employeeId, StatusRequest request, String authorization);
 
 }

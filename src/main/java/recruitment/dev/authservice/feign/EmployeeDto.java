@@ -37,4 +37,7 @@ public class EmployeeDto {
 
     private Long roleId;
     private Long departmentId;
+    private Long companyId;
+    private String companyName;
+    private boolean active;
 }

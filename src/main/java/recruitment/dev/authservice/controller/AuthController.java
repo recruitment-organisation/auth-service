@@ -38,6 +38,22 @@ public class AuthController {
         return ResponseEntity.ok(authService.createEmployee(request, "Bearer " + jwt.getTokenValue()));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/admin/companies/{companyId}/hr")
+    public ResponseEntity<CreateHrResponse> createHr(@PathVariable Long companyId,
+            @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateHrRequest request) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(authService.createHr(companyId, request, "Bearer " + jwt.getTokenValue()));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/admin/hr/{hrId}/status")
+    public ResponseEntity<Void> setHrStatus(@PathVariable Long hrId, @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody StatusRequest request) {
+        authService.setHrStatus(hrId, request, "Bearer " + jwt.getTokenValue());
+        return ResponseEntity.noContent().build();
+    }
+
 
     @DeleteMapping("/users/{userId}")
     @PreAuthorize("hasRole('HR')")
