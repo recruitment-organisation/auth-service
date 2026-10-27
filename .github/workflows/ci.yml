@@ -196,9 +196,9 @@ jobs:
           VERSION: ${{ needs.docker.outputs.version }}
         run: |
           cd gitops
-          yq -i '.image.tag = strenv(VERSION)' values/prod/applications/auth-service.yaml
+          yq -i '.image.tag = strenv(VERSION)' values/local/applications/auth-service.yaml
           echo "Nouveau contenu :"
-          cat values/prod/applications/auth-service.yaml
+          cat values/local/applications/auth-service.yaml
 
       - name: Commit and push
         env:
@@ -207,7 +207,7 @@ jobs:
           cd gitops
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add values/prod/applications/auth-service.yaml
+          git add values/local/applications/auth-service.yaml
           if git diff --cached --quiet; then
             echo "auth-service is already using ${VERSION}"
             exit 0
