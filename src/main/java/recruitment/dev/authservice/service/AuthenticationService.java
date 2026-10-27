@@ -21,6 +21,7 @@ import recruitment.dev.authservice.dto.LoginResponse;
 import recruitment.dev.authservice.dto.LogoutRequest;
 import recruitment.dev.authservice.dto.RefreshTokenRequest;
 import recruitment.dev.authservice.exception.AuthException;
+import recruitment.dev.authservice.util.ApplicationRoles;
 
 import java.util.List;
 import java.util.Map;
@@ -137,7 +138,7 @@ public class AuthenticationService {
         Map<String, Object> realmAccess = (Map<String, Object>) claims.getClaim("realm_access");
         Object roles = realmAccess == null ? null : realmAccess.get("roles");
         response.setRoles(roles instanceof List<?> roleList
-                ? roleList.stream().filter(String.class::isInstance).map(String.class::cast).toList()
+                ? ApplicationRoles.filter(roleList)
                 : Collections.emptyList());
         populateEntityIds(response, accessToken);
 

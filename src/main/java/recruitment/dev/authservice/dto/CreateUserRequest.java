@@ -33,8 +33,10 @@ public class CreateUserRequest {
     private Boolean available;
 
     @URL(message = "Invalid LinkedIn URL")
+    @Size(max = 255, message = "LinkedIn URL must not exceed 255 characters")
     private String linkedinUrl;
 
     @URL(message = "Invalid GitHub URL")
+    @Size(max = 255, message = "GitHub URL must not exceed 255 characters")
     private String githubUrl;
 }

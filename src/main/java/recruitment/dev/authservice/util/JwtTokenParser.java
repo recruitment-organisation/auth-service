@@ -38,10 +38,7 @@ public class JwtTokenParser {
             return Collections.emptyList();
         }
 
-        return roles.stream()
-                .filter(String.class::isInstance)
-                .map(String.class::cast)
-                .toList();
+        return ApplicationRoles.filter(roles);
     }
 
     public record ParsedAccessToken(String subject, String username, List<String> roles) {

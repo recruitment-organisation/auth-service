@@ -25,14 +25,14 @@ class JwtTokenParserTest {
         String token = signedToken(
                 "kc-user-1",
                 "alice",
-                List.of("HR", "MANAGER")
+                List.of("EMPLOYEE", "offline_access", "default-roles-micro-service", "uma_authorization")
         );
 
         JwtTokenParser.ParsedAccessToken parsed = parser.parse(token);
 
         assertEquals("kc-user-1", parsed.subject());
         assertEquals("alice", parsed.username());
-        assertEquals(List.of("HR", "MANAGER"), parsed.roles());
+        assertEquals(List.of("EMPLOYEE"), parsed.roles());
     }
 
     @Test
